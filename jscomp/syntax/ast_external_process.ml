@@ -853,9 +853,7 @@ let handle_attributes
     Location.raise_errorf
       ~loc "[@@bs.uncurry] can not be applied to the whole definition";
   let prim_name_or_pval_name =
-    if String.length prim_name = 0 then  
-      `Nm_val (lazy (Location.prerr_warning loc (Bs_fragile_external pval_name); pval_name))
-    else  `Nm_external prim_name  (* need check name *) in
+    `Nm_external prim_name  (* need check name *) in
   let result_type, arg_types_ty =
     (* Note this assumes external type is syntatic (no abstraction)*)
     Ast_core_type.list_of_arrow type_annotation in

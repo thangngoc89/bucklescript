@@ -131,10 +131,7 @@ let buckle_script_flags : (string * Arg.spec * string) list =
      " Define conditional variable e.g, -D DEBUG=true"
   )
   :: 
-  ("-bs-quiet", Arg.Set Clflags.bs_quiet,
-    " Quiet mode (no warnings printed)"
-  )
-  ::
+  
   ("-bs-list-conditionals",
    Arg.Unit (fun () -> Lexer.list_variables Format.err_formatter),
    " List existing conditional variables")

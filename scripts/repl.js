@@ -10,7 +10,7 @@ var config = {
   cwd: jscompDir,
   encoding: "utf8",
   stdio: [0, 1, 2],
-  shell: true
+  shell: true,
 };
 function e(cmd) {
   console.log(`>>>>>> running command: ${cmd}`);
@@ -43,7 +43,11 @@ function prepare() {
   e(`./bin/cmjbrowser.exe`);
   var js_compiler_path = `../lib/4.02.3/unstable`;
   e(
-    `ocamlc.opt -w -30-40 -no-check-prims -I ${js_compiler_path} ${js_compiler_path}/js_compiler.mli ${js_compiler_path}/js_compiler.ml -o jsc.byte`
+    [
+      `ocamlc.opt -w -30-40 -no-check-prims -I +compiler-libs`,
+      ` -I /home/khoa/.opam/4.02.3+buckle-master/lib/reason -I /home/khoa/.opam/4.02.3+buckle-master/lib/ocaml-migrate-parsetree`,
+      `-I ${js_compiler_path} ${js_compiler_path}/js_compiler.mli ${js_compiler_path}/js_compiler.ml -o jsc.byte`,
+    ].join(" ")
   );
 
   e(`cp ../lib/js/*.js ${playground}/stdlib`);
@@ -133,7 +137,7 @@ var cmi_files = [
   `belt_HashSetString`,
   `belt_HashMap`,
   `belt_HashMapInt`,
-  `belt_HashMapString`
+  `belt_HashMapString`,
 ]
   .map(x => `${x}.cmi:/static/cmis/${x}.cmi`)
   .map(x => `--file ${x}`)
