@@ -10,7 +10,7 @@ var config = {
   cwd: jscompDir,
   encoding: "utf8",
   stdio: [0, 1, 2],
-  shell: true,
+  shell: true
 };
 function e(cmd) {
   console.log(`>>>>>> running command: ${cmd}`);
@@ -42,22 +42,8 @@ function prepare() {
 
   e(`./bin/cmjbrowser.exe`);
   var js_compiler_path = `../lib/4.02.3/unstable`;
-  // e(
-  //   `ocamlc.opt -w -30-40 -no-check-prims -I ${js_compiler_path} ${js_compiler_path}/js_compiler.mli ${js_compiler_path}/js_compiler.ml -o jsc.byte`
-  // );
-  
   e(
-    `../ocaml/ocamlc.opt -w -30-40 -no-check-prims -I ../ocaml/parsing -I +compiler-libs -I main ../ocaml/compilerlibs/ocamlcommon.cma main/refmt_main3.ml -o refmt_main3.cmo`
-  );
-
-  e(
-    [
-      `../ocaml/ocamlc.opt -w -30-40 -no-check-prims`,
-      `-I +compiler-libs`,
-      `-I main -I stubs -I ext -I common -I syntax -I depends -I core -I super_errors -I outcome_printer -I bsb -I bsb_helper`,
-      `main/jsoo_main.mli main/jsoo_main.ml`,
-      `-o jsc.byte`,
-    ].join(" ")
+    `ocamlc.opt -w -30-40 -no-check-prims -I ${js_compiler_path} ${js_compiler_path}/js_compiler.mli ${js_compiler_path}/js_compiler.ml -o jsc.byte`
   );
 
   e(`cp ../lib/js/*.js ${playground}/stdlib`);
@@ -147,7 +133,7 @@ var cmi_files = [
   `belt_HashSetString`,
   `belt_HashMap`,
   `belt_HashMapInt`,
-  `belt_HashMapString`,
+  `belt_HashMapString`
 ]
   .map(x => `${x}.cmi:/static/cmis/${x}.cmi`)
   .map(x => `--file ${x}`)

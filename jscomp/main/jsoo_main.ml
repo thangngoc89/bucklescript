@@ -228,10 +228,16 @@ let make_compiler name impl =
                         Js.Unsafe.set cmj_bytestring "t" 9;
                         load_module cmi_path cmi_content (Js.to_string cmj_name) cmj_bytestring);
                   |]))
+
 let () = make_compiler "ocaml" Parse.implementation
 
-module Converter = Refmt_main3.Migrate_parsetree.Convert(Refmt_main3.Migrate_parsetree.OCaml_404)(Refmt_main3.Migrate_parsetree.OCaml_402)
-let () = make_compiler "reason" (fun lexbuf -> Refmt_main3.Reason_toolchain.RE.implementation lexbuf |> Converter.copy_structure)
+module Converter = Refmt_main3.Migrate_parsetree.Convert(Refmt_main3.Migrate_parsetree.OCaml_404)(Refmt_main3.Migrate_parsetree.OCaml_current)
+
+let reason_parse lexbuf =
+  let ast = Refmt_main3.Reason_toolchain.RE.implementation lexbuf in
+  Converter.copy_structure ast
+
+let () = make_compiler "reason" reason_parse
 
 (* local variables: *)
 (* compile-command: "ocamlbuild -use-ocamlfind -pkg compiler-libs -no-hygiene driver.cmo" *)
