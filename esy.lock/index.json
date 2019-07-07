@@ -1,0 +1,43 @@
+{
+  "checksum": "5b7f73c5c1b0f9186dc1b7e494c9baca",
+  "root": "sketch@link-dev:./esy.json",
+  "node": {
+    "sketch@link-dev:./esy.json": {
+      "id": "sketch@link-dev:./esy.json",
+      "name": "sketch",
+      "version": "link-dev:./esy.json",
+      "source": { "type": "link-dev", "path": ".", "manifest": "esy.json" },
+      "overrides": [],
+      "dependencies": [ "ocaml@4.8.0@d41d8cd9", "dune@0.2.1@d41d8cd9" ],
+      "devDependencies": []
+    },
+    "ocaml@4.8.0@d41d8cd9": {
+      "id": "ocaml@4.8.0@d41d8cd9",
+      "name": "ocaml",
+      "version": "4.8.0",
+      "source": {
+        "type": "install",
+        "source": [
+          "archive:https://registry.npmjs.org/ocaml/-/ocaml-4.8.0.tgz#sha1:4a84b039d079500ae3b690e197a2d30c9e9a2b63"
+        ]
+      },
+      "overrides": [],
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "dune@0.2.1@d41d8cd9": {
+      "id": "dune@0.2.1@d41d8cd9",
+      "name": "dune",
+      "version": "0.2.1",
+      "source": {
+        "type": "install",
+        "source": [
+          "archive:https://registry.npmjs.org/dune/-/dune-0.2.1.tgz#sha1:e70fc7b0802f16fcd7cd2b248926a3653eef07e2"
+        ]
+      },
+      "overrides": [],
+      "dependencies": [],
+      "devDependencies": []
+    }
+  }
+}

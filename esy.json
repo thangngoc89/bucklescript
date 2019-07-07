@@ -1,0 +1,21 @@
+{
+  "name": "sketch",
+  "version": "0.1.0",
+  "description": "Example Reason Esy Project",
+  "license": "MIT",
+  "esy": { "build": "refmterr dune build -p #{self.name}" },
+  "scripts": {
+    "jsoo": "esy dune build --profile=production src/jsoo/SketchJsoo.bc.js",
+    "copy_js": "cp _esy/default/build/default/src/jsoo/SketchJsoo.bc.js frontend/SketchJsoo.bc.js",
+    "test": "esy x RunTests.exe",
+    "doc": "esy dune build @doc",
+    "clean": "esy dune clean"
+  },
+  "dependencies": {
+    "dune": "*",
+    "ocaml": "BuckleScript/ocaml#00d25c5e0dbec2bfe223d0354b239defab97878b"
+  },
+  "resolution": {
+    "ocaml": "BuckleScript/ocaml#00d25c5e0dbec2bfe223d0354b239defab97878b"
+  }
+}
