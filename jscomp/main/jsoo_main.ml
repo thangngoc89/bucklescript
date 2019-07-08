@@ -230,6 +230,9 @@ let make_compiler name impl =
                   |]))
 let () = make_compiler "ocaml" Parse.implementation
 
+module Converter = Refmt_api.Migrate_parsetree.Convert(Refmt_api.Migrate_parsetree.OCaml_404)(Refmt_api.Migrate_parsetree.OCaml_402)
+let () = make_compiler "reason" (fun lexbuf -> Refmt_api.Reason_toolchain.RE.implementation lexbuf |> Converter.copy_structure)
+
 (* local variables: *)
 (* compile-command: "ocamlbuild -use-ocamlfind -pkg compiler-libs -no-hygiene driver.cmo" *)
 (* end: *)
