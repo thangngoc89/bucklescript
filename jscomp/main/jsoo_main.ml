@@ -65,6 +65,16 @@ let () =
   Clflags.unsafe_string := false;
   Clflags.record_event_when_debug := false
 
+let list_dependencies parser text =
+  let ast = parser (Lexing.from_string text) in
+  Depend.free_structure_names := Depend.StringSet.empty;
+  Depend.add_implementation Depend.StringSet.empty ast;
+  !Depend.free_structure_names
+
+let list_dependencies parser text =
+  let depSet = list_dependencies parser text in
+  Array.of_list (Depend.StringSet.elements depSet |> List.map Js.string)
+
 let error_of_exn e =   
 #if OCAML_VERSION =~ ">4.03.0" then
   match Location.error_of_exn e with 
@@ -233,6 +243,11 @@ let make_compiler name impl =
                     inject @@
                     Js.wrap_meth_callback
                       (fun _ code -> (shake_compile impl ~use_super_errors:true (Js.to_string code)));
+                    "list_dependencies",
+                    inject @@
+                    Js.wrap_meth_callback
+                      (fun _ code ->
+                         (list_dependencies impl (Js.to_string code)));
                     "version", Js.Unsafe.inject (Js.string (Bs_version.version));
                     "load_module",
                     inject @@
