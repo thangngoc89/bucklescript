@@ -147,7 +147,7 @@ let implementation ?module_name ~use_super_errors ?(react_ppx_version=V3) prefix
       (* Format.fprintf output_ppf {| { "js_code" : %S }|} v ) *)
   with
   | e ->
-      begin match error_of_exn  e with
+      begin match error_of_exn e with
       | Some error ->
           Location.report_error Format.err_formatter  error;
           let (file,line,startchar) = Location.get_pos_info error.loc.loc_start in
@@ -206,6 +206,12 @@ let () =
 let () =
   dir_directory "/static"
 
+
+module Converter = Refmt_api.Migrate_parsetree.Convert(Refmt_api.Migrate_parsetree.OCaml_404)(Refmt_api.Migrate_parsetree.OCaml_402)
+
+let reason_parse lexbuf = 
+  Refmt_api.Reason_toolchain.RE.implementation lexbuf |> Converter.copy_structure;;
+
 let make_compiler name impl =
   export name
     (Js.Unsafe.(obj
@@ -243,11 +249,36 @@ let make_compiler name impl =
                     inject @@
                     Js.wrap_meth_callback
                       (fun _ code -> (shake_compile impl ~use_super_errors:true (Js.to_string code)));
+                    "reason_compile",
+                    inject @@
+                    Js.wrap_meth_callback
+                      (fun _ code ->
+                         (compile reason_parse ~use_super_errors:false (Js.to_string code)));
+                    "reason_shake_compile",
+                    inject @@
+                    Js.wrap_meth_callback
+                      (fun _ code ->
+                         (shake_compile reason_parse ~use_super_errors:false (Js.to_string code)));
+                    "reason_compile_super_errors",
+                    inject @@
+                    Js.wrap_meth_callback
+                      (fun _ code ->
+                         (compile reason_parse ~use_super_errors:true (Js.to_string code)));
+                    "reason_shake_compile_super_errors",
+                    inject @@
+                    Js.wrap_meth_callback
+                      (fun _ code ->
+                         (shake_compile reason_parse ~use_super_errors:true (Js.to_string code)));
                     "list_dependencies",
                     inject @@
                     Js.wrap_meth_callback
                       (fun _ code ->
                          (list_dependencies impl (Js.to_string code)));
+                    "reason_list_dependencies",
+                    inject @@
+                    Js.wrap_meth_callback
+                      (fun _ code ->
+                         (list_dependencies reason_parse (Js.to_string code)));
                     "version", Js.Unsafe.inject (Js.string (Bs_version.version));
                     "load_module",
                     inject @@
@@ -260,9 +291,6 @@ let make_compiler name impl =
                         load_module cmi_path cmi_content (Js.to_string cmj_name) cmj_bytestring);
                   |]))
 let () = make_compiler "ocaml" Parse.implementation
-
-module Converter = Refmt_api.Migrate_parsetree.Convert(Refmt_api.Migrate_parsetree.OCaml_404)(Refmt_api.Migrate_parsetree.OCaml_402)
-let () = make_compiler "reason" (fun lexbuf -> Refmt_api.Reason_toolchain.RE.implementation lexbuf |> Converter.copy_structure)
 
 (* local variables: *)
 (* compile-command: "ocamlbuild -use-ocamlfind -pkg compiler-libs -no-hygiene driver.cmo" *)
