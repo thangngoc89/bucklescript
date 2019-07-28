@@ -65,6 +65,16 @@ let () =
   Clflags.unsafe_string := false;
   Clflags.record_event_when_debug := false
 
+let list_dependencies parser text =
+  let ast = parser (Lexing.from_string text) in
+  Depend.free_structure_names := Depend.StringSet.empty;
+  Depend.add_implementation Depend.StringSet.empty ast;
+  !Depend.free_structure_names
+
+let list_dependencies parser text =
+  let depSet = list_dependencies parser text in
+  Array.of_list (Depend.StringSet.elements depSet |> List.map Js.string)
+
 let error_of_exn e =   
 #if OCAML_VERSION =~ ">4.03.0" then
   match Location.error_of_exn e with 
@@ -77,12 +87,16 @@ let error_of_exn e =
 
 type react_ppx_version = V2 | V3
 
-let implementation ~use_super_errors ?(react_ppx_version=V3) prefix impl str  : Js.Unsafe.obj =
-  let modulename = "Test" in
+let implementation ?module_name ~use_super_errors ?(react_ppx_version=V3) prefix impl str  : Js.Unsafe.obj =
+  let modulename = match module_name with | None -> "Test" | Some name -> name in
+  let writeCmi = module_name != None in
   (* let env = !Toploop.toplevel_env in *)
   (* Compmisc.init_path false; *)
   (* let modulename = module_of_filename ppf sourcefile outputprefix in *)
-  (* Env.set_unit_name modulename; *)
+  begin match module_name with
+  | None -> ()
+  | Some module_name -> Env.set_unit_name module_name
+  end;
   Lam_compile_env.reset () ;
   let env = Compmisc.initial_env() in (* Question ?? *)
   let finalenv = ref Env.empty in
@@ -103,11 +117,15 @@ let implementation ~use_super_errors ?(react_ppx_version=V3) prefix impl str  : 
     | V2 -> Reactjs_jsx_ppx_v2.rewrite_implementation ast
     | V3 -> Reactjs_jsx_ppx_v3.rewrite_implementation ast in 
     let ast = Bs_builtin_ppx.rewrite_implementation ast in 
-    let typed_tree = 
-      let (a,b,c,signature) = Typemod.type_implementation_more modulename modulename modulename env ast in
-      finalenv := c ;
-      types_signature := signature;
-      (a,b) in      
+    
+    let typed_tree =
+      if writeCmi then Clflags.dont_write_files := false else ();
+      let (a,b,c,signature) =
+        Typemod.type_implementation_more modulename modulename modulename env ast in
+      if writeCmi then Clflags.dont_write_files := true else ();
+      finalenv := c; 
+      types_signature := signature; 
+      (a, b) in
   typed_tree
   |>  Translmod.transl_implementation modulename
   |> (* Printlambda.lambda ppf *) (fun 
@@ -129,7 +147,7 @@ let implementation ~use_super_errors ?(react_ppx_version=V3) prefix impl str  : 
       (* Format.fprintf output_ppf {| { "js_code" : %S }|} v ) *)
   with
   | e ->
-      begin match error_of_exn  e with
+      begin match error_of_exn e with
       | Some error ->
           Location.report_error Format.err_formatter  error;
           let (file,line,startchar) = Location.get_pos_info error.loc.loc_start in
@@ -155,8 +173,8 @@ let implementation ~use_super_errors ?(react_ppx_version=V3) prefix impl str  : 
       end
 
 
-let compile impl ~use_super_errors ?react_ppx_version =
-    implementation ~use_super_errors ?react_ppx_version false impl
+let compile impl ?module_name ~use_super_errors ?react_ppx_version =
+    implementation ?module_name ~use_super_errors ?react_ppx_version false impl
 
 (** TODO: add `[@@bs.config{no_export}]\n# 1 "repl.ml"`*)
 let shake_compile impl ~use_super_errors ?react_ppx_version =
@@ -185,6 +203,15 @@ let dir_directory d =
 let () =
   dir_directory "/static/cmis"
 
+let () =
+  dir_directory "/static"
+
+
+module Converter = Refmt_api.Migrate_parsetree.Convert(Refmt_api.Migrate_parsetree.OCaml_404)(Refmt_api.Migrate_parsetree.OCaml_402)
+
+let reason_parse lexbuf = 
+  Refmt_api.Reason_toolchain.RE.implementation lexbuf |> Converter.copy_structure;;
+
 let make_compiler name impl =
   export name
     (Js.Unsafe.(obj
@@ -193,6 +220,11 @@ let make_compiler name impl =
                     Js.wrap_meth_callback
                       (fun _ code ->
                          (compile impl ~use_super_errors:false (Js.to_string code)));
+                    "compile_module",
+                    inject @@
+                    Js.wrap_meth_callback
+                      (fun _ module_name code ->
+                        (compile impl ~module_name:(Js.to_string module_name) ~use_super_errors:true (Js.to_string code)));
                     "shake_compile",
                     inject @@
                     Js.wrap_meth_callback
@@ -217,6 +249,11 @@ let make_compiler name impl =
                     inject @@
                     Js.wrap_meth_callback
                       (fun _ code -> (shake_compile impl ~use_super_errors:true (Js.to_string code)));
+                    "list_dependencies",
+                    inject @@
+                    Js.wrap_meth_callback
+                      (fun _ code ->
+                         (list_dependencies impl (Js.to_string code)));
                     "version", Js.Unsafe.inject (Js.string (Bs_version.version));
                     "load_module",
                     inject @@
@@ -229,6 +266,7 @@ let make_compiler name impl =
                         load_module cmi_path cmi_content (Js.to_string cmj_name) cmj_bytestring);
                   |]))
 let () = make_compiler "ocaml" Parse.implementation
+let () = make_compiler "reason" reason_parse
 
 (* local variables: *)
 (* compile-command: "ocamlbuild -use-ocamlfind -pkg compiler-libs -no-hygiene driver.cmo" *)
