@@ -139,5 +139,5 @@ var cmi_files = [
   .map(x => `--file ${x}`)
   .join(` `);
 e(
-  `js_of_ocaml --disable share --toplevel +weak.js ./polyfill.js jsc.byte ${includes} ${cmi_files} -o ${playground}/exports.js`
+  `js_of_ocaml --disable share --toplevel +weak.js ./polyfill.js jsc.byte ${includes} ${cmi_files} -o ${playground}/bs.js`
 );
