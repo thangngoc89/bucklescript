@@ -32,16 +32,16 @@ function prepare() {
   e(`hash hash js_of_ocaml 2>/dev/null || { echo >&2 "js_of_ocaml not found on path. Please install version 2.8.4 (although not with the buckelscript switch) and put it on your path."; exit 1; }
 `);
 
-  e(
-    `hash ocp-ocamlres 2>/dev/null || { echo >&2 "ocp-ocamlres not installed. Please install: opam install ocp-ocamlres"; exit 1; }`
-  );
+  // e(
+  //   `hash ocp-ocamlres 2>/dev/null || { echo >&2 "ocp-ocamlres not installed. Please install: opam install ocp-ocamlres"; exit 1; }`
+  // );
 
-  e(
-    `hash camlp4 2>/dev/null || { echo >&2 "camlp4 not installed. Please install: opam install camlp4"; exit 1; }`
-  );
+  // e(
+  //   `hash camlp4 2>/dev/null || { echo >&2 "camlp4 not installed. Please install: opam install camlp4"; exit 1; }`
+  // );
 
   e(`./bin/cmjbrowser.exe`);
-  var js_compiler_path = `../lib/4.02.3/unstable`;
+  var js_compiler_path = `../lib/4.06.1/unstable`;
   e(
     `ocamlc.opt -w -30-40 -no-check-prims -I ${js_compiler_path} ${js_compiler_path}/js_compiler.mli ${js_compiler_path}/js_compiler.ml -o jsc.byte`
   );
@@ -54,7 +54,7 @@ prepare();
 
 console.log(`playground : ${playground}`);
 
-var includes = [`stdlib-402`, `runtime`, `others`]
+var includes = [`stdlib-406`, `runtime`, `others`]
   .map(x => path.join(jscompDir, x))
   .map(x => `-I ${x}`)
   .join(` `);
@@ -133,7 +133,8 @@ var cmi_files = [
   `belt_HashSetString`,
   `belt_HashMap`,
   `belt_HashMapInt`,
-  `belt_HashMapString`
+  `belt_HashMapString`,
+  `belt_Result`
 ]
   .map(x => `${x}.cmi:/static/cmis/${x}.cmi`)
   .map(x => `--file ${x}`)
