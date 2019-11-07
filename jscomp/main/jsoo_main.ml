@@ -139,8 +139,8 @@ let implementation ?module_name ~use_super_errors ?(react_ppx_version=V3) prefix
       let () = Js_dump_program.pp_deps_program
                           ~output_prefix:"" (* does not matter here *)
                           NodeJS
-                          (Lam_compile_main.compile ~filename:"" ""
-                             !finalenv  lam)
+                          (Lam_compile_main.compile ""
+                              lam)
                           (Ext_pp.from_buffer buffer) in
       let v = Buffer.contents buffer in
       Js.Unsafe.(obj [| "js_code", inject @@ Js.string v |]) )
@@ -207,7 +207,7 @@ let () =
   dir_directory "/static"
 
 
-module Converter = Refmt_api.Migrate_parsetree.Convert(Refmt_api.Migrate_parsetree.OCaml_404)(Refmt_api.Migrate_parsetree.OCaml_402)
+module Converter = Refmt_api.Migrate_parsetree.Convert(Refmt_api.Migrate_parsetree.OCaml_404)(Refmt_api.Migrate_parsetree.OCaml_40)
 
 let reason_parse lexbuf = 
   Refmt_api.Reason_toolchain.RE.implementation lexbuf |> Converter.copy_structure;;

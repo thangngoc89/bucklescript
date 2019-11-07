@@ -46,7 +46,7 @@ function prepare() {
     `ocamlc.opt -w -30-40 -no-check-prims -I ${js_compiler_path} ${js_compiler_path}/js_compiler.mli ${js_compiler_path}/js_compiler.ml -o jsc.byte`
   );
 
-  e(`cp ../lib/js/*.js ${playground}/stdlib`);
+  // e(`cp "../lib/js/*.js" ${playground}/stdlib`);
 }
 
 // needs js_cmj_datasets, preload.js and amdjs to be update
@@ -90,20 +90,20 @@ var cmi_files = [
   `js_float`,
   `js_json`,
 
-  `arrayLabels`,
-  `bytesLabels`,
-  `complex`,
-  `gc`,
-  `genlex`,
-  `listLabels`,
-  `moreLabels`,
-  `queue`,
-  `scanf`,
-  `sort`,
-  `stack`,
-  `stdLabels`,
-  `stream`,
-  `stringLabels`,
+  // `arrayLabels`,
+  // `bytesLabels`,
+  // `complex`,
+  // `gc`,
+  // `genlex`,
+  // `listLabels`,
+  // `moreLabels`,
+  // `queue`,
+  // `scanf`,
+  // `sort`,
+  // `stack`,
+  // `stdLabels`,
+  // `stream`,
+  // `stringLabels`,
   `dom`,
   `belt`,
   `belt_Id`,
