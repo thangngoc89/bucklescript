@@ -155,11 +155,12 @@ let implementation ?module_name ~use_super_errors ?(react_ppx_version=V3) prefix
     Js.Unsafe.(obj
         [|
           "js_error_msg",
-            inject @@ Js.string (errorString);
+            inject @@ Js.string (Printf.sprintf "Line %d, %d:\n  %s"  line startchar errorString);
               "row"    , inject (line - 1);
               "column" , inject startchar;
               "endRow" , inject (endline - 1);
               "endColumn" , inject endchar;
+              "text" , inject @@ Js.string errorString;
               "type" , inject @@ Js.string "error"
         |]
       );
