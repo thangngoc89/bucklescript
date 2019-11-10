@@ -147,7 +147,23 @@ let implementation ?module_name ~use_super_errors ?(react_ppx_version=V3) prefix
       Js.Unsafe.(obj [| "js_code", inject @@ Js.string v |]) )
       (* Format.fprintf output_ppf {| { "js_code" : %S }|} v ) *)
   with
-  | Syntaxerr.Error err ->
+  | Refmt_api.Migrate_parsetree.Def.Migration_error (missing_feature, loc) ->
+    
+    let (file,line,startchar) = Location.get_pos_info loc.loc_start in
+    let (file,endline,endchar) = Location.get_pos_info loc.loc_end in
+    let errorString = Refmt_api.Migrate_parsetree.Def.migration_error_message missing_feature in
+    Js.Unsafe.(obj
+        [|
+          "js_error_msg",
+            inject @@ Js.string (errorString);
+              "row"    , inject (line - 1);
+              "column" , inject startchar;
+              "endRow" , inject (endline - 1);
+              "endColumn" , inject endchar;
+              "type" , inject @@ Js.string "error"
+        |]
+      );
+  (* | Syntaxerr.Error err ->
     let location = Syntaxerr.location_of_error err in
     let (file,line,startchar) = Location.get_pos_info location.loc_start in
     let (file,endline,endchar) = Location.get_pos_info location.loc_end in
@@ -164,7 +180,7 @@ let implementation ?module_name ~use_super_errors ?(react_ppx_version=V3) prefix
             "endColumn" , inject endchar;
             "type" , inject @@ Js.string "error"
       |]
-    );
+    ); *)
   | e ->
       begin match error_of_exn e with
       | Some error ->
