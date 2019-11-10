@@ -75,6 +75,7 @@ let list_dependencies parser text =
   let depSet = list_dependencies parser text in
   Array.of_list (Depend.StringSet.elements depSet |> List.map Js.string)
 
+
 let error_of_exn e =   
 #if OCAML_VERSION =~ ">4.03.0" then
   match Location.error_of_exn e with 
@@ -146,6 +147,24 @@ let implementation ?module_name ~use_super_errors ?(react_ppx_version=V3) prefix
       Js.Unsafe.(obj [| "js_code", inject @@ Js.string v |]) )
       (* Format.fprintf output_ppf {| { "js_code" : %S }|} v ) *)
   with
+  | Syntaxerr.Error err ->
+    let location = Syntaxerr.location_of_error err in
+    let (file,line,startchar) = Location.get_pos_info location.loc_start in
+    let (file,endline,endchar) = Location.get_pos_info location.loc_end in
+    Syntaxerr.report_error Format.str_formatter err;
+    let errorString = Format.flush_str_formatter () in
+
+    Js.Unsafe.(obj
+      [|
+        "js_error_msg",
+          inject @@ Js.string (errorString);
+            "row"    , inject (line - 1);
+            "column" , inject startchar;
+            "endRow" , inject (endline - 1);
+            "endColumn" , inject endchar;
+            "type" , inject @@ Js.string "error"
+      |]
+    );
   | e ->
       begin match error_of_exn e with
       | Some error ->
@@ -164,10 +183,10 @@ let implementation ?module_name ~use_super_errors ?(react_ppx_version=V3) prefix
                "type" , inject @@ Js.string "error"
           |]
           );
-
       | None ->
         Js.Unsafe.(obj [|
-        "js_error_msg" , inject @@ Js.string (Printexc.to_string e)
+        "js_error_msg" , inject @@ Js.string (Printexc.to_string e);
+        "type" , inject @@ Js.string "error"
         |])
 
       end
