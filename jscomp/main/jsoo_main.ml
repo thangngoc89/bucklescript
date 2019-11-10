@@ -75,6 +75,21 @@ let list_dependencies parser text =
   let depSet = list_dependencies parser text in
   Array.of_list (Depend.StringSet.elements depSet |> List.map Js.string)
 
+let js_error_object loc msg = 
+  let (file,line,startchar) = Location.get_pos_info loc.Location.loc_start in
+  let (file,endline,endchar) = Location.get_pos_info loc.Location.loc_end in
+  Js.Unsafe.(obj
+      [|
+        "js_error_msg",
+          inject @@ Js.string (Printf.sprintf "Line %d, %d:\n  %s"  line startchar msg);
+            "row"    , inject (line - 1);
+            "column" , inject startchar;
+            "endRow" , inject (endline - 1);
+            "endColumn" , inject endchar;
+            "text" , inject @@ Js.string msg;
+            "type" , inject @@ Js.string "error"
+      |]
+    )
 
 let error_of_exn e =   
 #if OCAML_VERSION =~ ">4.03.0" then
@@ -147,65 +162,22 @@ let implementation ?module_name ~use_super_errors ?(react_ppx_version=V3) prefix
       Js.Unsafe.(obj [| "js_code", inject @@ Js.string v |]) )
       (* Format.fprintf output_ppf {| { "js_code" : %S }|} v ) *)
   with
-  | Refmt_api.Migrate_parsetree.Def.Migration_error (missing_feature, loc) ->
-    
-    let (file,line,startchar) = Location.get_pos_info loc.loc_start in
-    let (file,endline,endchar) = Location.get_pos_info loc.loc_end in
-    let errorString = Refmt_api.Migrate_parsetree.Def.migration_error_message missing_feature in
-    Js.Unsafe.(obj
-        [|
-          "js_error_msg",
-            inject @@ Js.string (Printf.sprintf "Line %d, %d:\n  %s"  line startchar errorString);
-              "row"    , inject (line - 1);
-              "column" , inject startchar;
-              "endRow" , inject (endline - 1);
-              "endColumn" , inject endchar;
-              "text" , inject @@ Js.string errorString;
-              "type" , inject @@ Js.string "error"
-        |]
-      );
-  (* | Syntaxerr.Error err ->
-    let location = Syntaxerr.location_of_error err in
-    let (file,line,startchar) = Location.get_pos_info location.loc_start in
-    let (file,endline,endchar) = Location.get_pos_info location.loc_end in
-    Syntaxerr.report_error Format.str_formatter err;
-    let errorString = Format.flush_str_formatter () in
-
-    Js.Unsafe.(obj
-      [|
-        "js_error_msg",
-          inject @@ Js.string (errorString);
-            "row"    , inject (line - 1);
-            "column" , inject startchar;
-            "endRow" , inject (endline - 1);
-            "endColumn" , inject endchar;
-            "type" , inject @@ Js.string "error"
-      |]
-    ); *)
   | e ->
       begin match error_of_exn e with
       | Some error ->
-          Location.report_error Format.err_formatter  error;
-          let (file,line,startchar) = Location.get_pos_info error.loc.loc_start in
-          let (file,endline,endchar) = Location.get_pos_info error.loc.loc_end in
-          Js.Unsafe.(obj
-          [|
-            "js_error_msg",
-              inject @@ Js.string (Printf.sprintf "Line %d, %d:\n  %s"  line startchar error.msg);
-               "row"    , inject (line - 1);
-               "column" , inject startchar;
-               "endRow" , inject (endline - 1);
-               "endColumn" , inject endchar;
-               "text" , inject @@ Js.string error.msg;
-               "type" , inject @@ Js.string "error"
-          |]
-          );
+        Location.report_error Format.err_formatter  error;
+        js_error_object error.loc error.msg
       | None ->
-        Js.Unsafe.(obj [|
-        "js_error_msg" , inject @@ Js.string (Printexc.to_string e);
-        "type" , inject @@ Js.string "error"
-        |])
-
+        let msg = Printexc.to_string e in
+        match e with
+        | Refmt_api.Migrate_parsetree.Def.Migration_error (_,loc)
+        | Refmt_api.Reason_errors.Reason_error (_,loc) ->
+          js_error_object loc msg
+        | _ -> 
+          Js.Unsafe.(obj [|
+            "js_error_msg" , inject @@ Js.string msg;
+            "type" , inject @@ Js.string "error"
+          |])
       end
 
 
