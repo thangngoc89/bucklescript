@@ -133,7 +133,8 @@ var cmi_files = [
   `belt_HashSetString`,
   `belt_HashMap`,
   `belt_HashMapInt`,
-  `belt_HashMapString`
+  `belt_HashMapString`,
+  `belt_Result`
 ]
   .map(x => `${x}.cmi:/static/cmis/${x}.cmi`)
   .map(x => `--file ${x}`)
